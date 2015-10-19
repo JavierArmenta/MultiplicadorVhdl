@@ -36,28 +36,43 @@ entity main is
 end main;
 
 architecture Behavioral of main is
-type array8x8 is array (0 to 15)  of std_logic_vector (15 downto 0);
-signal componentes: array8x8;
-signal Y_buffer :  STD_LOGIC_VECTOR (15 downto 0);
-signal X_buffer :STD_LOGIC_VECTOR (15 downto 0);
-signal P_buffer  :STD_LOGIC_VECTOR (15 downto 0);
-begin
-Y_buffer <= "00000000" & y;
-X_buffer <= "00000000" & x;
-
-process (y,x)
- begin 
-	for i in 0 to 15 loop for j in 0 to 15 loop 
-		componentes(i)(j) <= y_buffer(i) and x_buffer(j) ;
-	end loop;	end loop;
-	
-end process;	
-
-
-
-P_buffer <= Y_buffer + X_buffer;
-p <= p_buffer;
-
+function maj (i1,i2,i3 : std_logic) return std_logic is 
+begin 
+	return ((i1 and i1) or (i1 and i3) or (i2 and i3));
+end maj;
+begin -------------------
+process (X,Y)
+type array8x8 is array (0 to 7) of std_logic_vector (7 downto 0);
+variable pc: array8x8;
+variable pcs: array8x8;
+variable pcc: array8x8;
+variable rac : std_logic_vector (7 downto 0);
+variable ras : std_logic_vector (7 downto 0);
+begin --inicia proceso
+	for i in 0 to 7 loop for j in 0 to 7 loop 
+		pc(i)(j) := y(i) and X(j);
+	end loop; end loop;
+	for j in 0 to 7 loop 
+		pcs(0)(j) := pc(0)(j);
+		pcc(0)(j) := '0';
+	end loop;	
+	for i in 1 to 7 loop 
+		for j in 0 to 6 loop 
+		pcs(i)(j) := pc(i)(j) xor pcs(i-1)(j+1) xor pcc(i-1)(j);
+		pcc(i)(j) := maj(pc(i)(j), pcs(i-1)(j+1),pcc(i-1)(j));
+		pcs(i)(7) := pc (i)(7);
+		end loop;
+	end loop;
+	rac(0) := '0';
+	for i in 0 to 6 loop 
+		ras(i) := pcs(7)(i+1) xor pcc(7)(1) xor rac(i);
+		rac(i+1) := maj(pcs(7)(i+1),pcc(7)(i),rac(i));
+	end loop;
+	for i in 8 to 14 loop 
+		p(i) <= ras(i-8);
+	end loop;
+	p(15) <= rac(7);
+end process;
 
 end Behavioral;
 
