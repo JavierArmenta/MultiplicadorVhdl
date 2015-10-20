@@ -38,7 +38,7 @@ end main;
 architecture Behavioral of main is
 function maj (i1,i2,i3 : std_logic) return std_logic is 
 begin 
-	return ((i1 and i1) or (i1 and i3) or (i2 and i3));
+	return ((i1 and i2) or (i1 and i3) or (i2 and i3));
 end maj;
 begin -------------------
 process (X,Y)
@@ -46,8 +46,7 @@ type array8x8 is array (0 to 7) of std_logic_vector (7 downto 0);
 variable pc: array8x8;
 variable pcs: array8x8;
 variable pcc: array8x8;
-variable rac : std_logic_vector (7 downto 0);
-variable ras : std_logic_vector (7 downto 0);
+variable ras,rac: std_logic_vector (7 downto 0);
 begin --inicia proceso
 	for i in 0 to 7 loop for j in 0 to 7 loop 
 		pc(i)(j) := y(i) and X(j);
@@ -65,14 +64,17 @@ begin --inicia proceso
 	end loop;
 	rac(0) := '0';
 	for i in 0 to 6 loop 
-		ras(i) := pcs(7)(i+1) xor pcc(7)(1) xor rac(i);
+		ras(i) := pcs(7)(i+1) xor pcc(7)(i) xor rac(i);
 		rac(i+1) := maj(pcs(7)(i+1),pcc(7)(i),rac(i));
 	end loop;
-	for i in 8 to 14 loop 
+	for i in 0 to 7 loop 
+		p(i) <= pcs(i)(0);
+	end loop;
+	for i in 8 to 14 loop
 		p(i) <= ras(i-8);
 	end loop;
 	p(15) <= rac(7);
-end process;
 
+end process;
 end Behavioral;
 
